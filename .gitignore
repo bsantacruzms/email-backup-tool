@@ -1,0 +1,33 @@
+# Build output
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+
+# Release / publish artifacts
+dist/
+publish/
+*.user
+
+# Visual Studio / Rider
+.vs/
+.idea/
+*.suo
+*.userprefs
+
+# NuGet
+*.nupkg
+packages/
+
+# Backup output produced by the tool (never commit real mailboxes)
+*.pst
+/Backups/
+*-portable.exe
+
+# OS
+Thumbs.db
+.DS_Store

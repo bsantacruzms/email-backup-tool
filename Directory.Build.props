@@ -1,0 +1,13 @@
+<Project>
+  <PropertyGroup>
+    <Version>0.1.0</Version>
+    <Authors>bsantacruzms</Authors>
+    <Company>bsantacruzms</Company>
+    <Product>Email Backup Tool</Product>
+    <Copyright>Copyright (c) bsantacruzms</Copyright>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <NeutralLanguage>en</NeutralLanguage>
+  </PropertyGroup>
+</Project>
