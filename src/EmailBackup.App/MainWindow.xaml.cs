@@ -3,6 +3,8 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
 using EmailBackup.Core;
 using Microsoft.Win32;
 
@@ -20,6 +22,10 @@ public partial class MainWindow : Window
         InitializeComponent();
         OutputBox.Text = DefaultOutputDir();
         Log("Ready. Enter your email and password, then Detect settings or Start backup.");
+
+        // Clear the green/red status colours as soon as the account details change.
+        EmailBox.TextChanged += (_, _) => ClearButtonIndicators();
+        PasswordBox.PasswordChanged += (_, _) => ClearButtonIndicators();
     }
 
     private static string DefaultOutputDir()
@@ -41,6 +47,7 @@ public partial class MainWindow : Window
             return;
         }
 
+        MarkButton(DetectButton, null);
         SetBusy(true);
         Progress.IsIndeterminate = true;
         SetStatus("Detecting server settings...");
@@ -52,18 +59,23 @@ public partial class MainWindow : Window
             {
                 _resolvedSettings = settings;
                 ApplySettingsToUi(settings);
+                DetectedText.Foreground = (Brush)FindResource("SuccessBrush");
+                MarkButton(DetectButton, true);
                 Log($"Detected: {settings} [{settings.Source}]");
                 SetStatus("Server settings detected.");
             }
             else
             {
                 DetectedText.Text = "Could not auto-detect. Please fill in Advanced settings.";
+                DetectedText.Foreground = (Brush)FindResource("ErrorBrush");
+                MarkButton(DetectButton, false);
                 Log("Could not auto-detect settings.");
                 SetStatus("Detection failed.");
             }
         }
         catch (Exception ex)
         {
+            MarkButton(DetectButton, false);
             Log("Detect error: " + ex.Message);
             SetStatus("Detection error.");
         }
@@ -80,6 +92,7 @@ public partial class MainWindow : Window
         if (account is null)
             return;
 
+        MarkButton(TestButton, null);
         SetBusy(true);
         Progress.IsIndeterminate = true;
         SetStatus("Testing connection...");
@@ -98,11 +111,13 @@ public partial class MainWindow : Window
             if (result.Success)
             {
                 _resolvedSettings = settings;
+                MarkButton(TestButton, true);
                 Log($"Connection OK. Inbox has {result.MailboxCount ?? 0} message(s).");
                 SetStatus("Connection successful.");
             }
             else
             {
+                MarkButton(TestButton, false);
                 Log("Connection failed: " + result.Error);
                 Log("Tip: Gmail and Microsoft 365 require an app password, not your normal password.");
                 SetStatus("Connection failed.");
@@ -110,6 +125,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
+            MarkButton(TestButton, false);
             Log("Test error: " + ex.Message);
             SetStatus("Error.");
         }
@@ -400,6 +416,30 @@ public partial class MainWindow : Window
     }
 
     private void SetStatus(string text) => StatusText.Text = text;
+
+    private void ClearButtonIndicators()
+    {
+        MarkButton(DetectButton, null);
+        MarkButton(TestButton, null);
+        DetectedText.Foreground = (Brush)FindResource("SubtleBrush");
+    }
+
+    // Paints a button green for success or red for failure; null restores the theme default.
+    private void MarkButton(Button button, bool? success)
+    {
+        if (success is null)
+        {
+            button.ClearValue(Control.BackgroundProperty);
+            button.ClearValue(Control.BorderBrushProperty);
+            button.ClearValue(Control.ForegroundProperty);
+            return;
+        }
+
+        var brush = (Brush)FindResource(success.Value ? "SuccessBrush" : "ErrorBrush");
+        button.Background = brush;
+        button.BorderBrush = brush;
+        button.Foreground = Brushes.White;
+    }
 
     private void Log(string message)
     {
